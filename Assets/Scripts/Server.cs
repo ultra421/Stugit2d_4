@@ -82,8 +82,6 @@ public class Server : MonoBehaviour
         }
     }
 
-    private void
-
     private void OnDestroy()
     {
         if (driver.IsCreated)
