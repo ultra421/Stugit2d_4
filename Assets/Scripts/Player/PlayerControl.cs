@@ -1,47 +1,68 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerControl : MonoBehaviour
 {
-
+    List<PlayerInputFlag> inputFlags;
+    List<PlayerInputFlag> previousInputFlags;
     Rigidbody2D rb;
-    // Start is called before the first frame update
     void Start()
     {
+        inputFlags= new List<PlayerInputFlag>();
+        previousInputFlags = inputFlags;
         rb = GetComponent<Rigidbody2D>();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 
     private void FixedUpdate()
     {
-        Move();
+        ApplyInputFlags();
     }
 
-    private void Move()
+    private void ApplyInputFlags()
     {
-        if (Input.GetKey(KeyCode.A))
+        //Get inputs from manager
+        inputFlags = PlayerInputManager.getInputList();
+        foreach (PlayerInputFlag flag in inputFlags)
         {
-            rb.AddForce(Vector2.left * 3);
+            switch (flag)
+            {
+                case PlayerInputFlag.up:
+                    MoveUp();
+                    break;
+                case PlayerInputFlag.down:
+                    MoveDown();
+                    break;
+                case PlayerInputFlag.left:
+                    MoveLeft();
+                    break;
+                case PlayerInputFlag.right:
+                    MoveRight();
+                    break;
+            }
         }
-        if (Input.GetKey(KeyCode.D))
-        {
-            rb.AddForce(Vector2.right * 3);
-        }
-        if (Input.GetKey(KeyCode.W))
-        {
-            rb.AddForce(Vector2.up * 3);
-        }
-        if (Input.GetKey(KeyCode.S))
-        {
-            rb.AddForce(Vector2.down * 3);
-        }
+        previousInputFlags = inputFlags;
+    }
 
+    private void MoveUp()
+    {
+        rb.velocity = new Vector2(0, 1);
+    }
+
+    private void MoveDown()
+    {
+        rb.velocity = new Vector2(0, -1);
+    }
+
+    private void MoveLeft()
+    {
+        rb.velocity = new Vector2(-1, 0);
+    }
+
+    private void MoveRight()
+    {
+        rb.velocity = new Vector2(1, 0);
     }
 
 }
