@@ -8,16 +8,36 @@ public class PlayerControl : MonoBehaviour
     List<PlayerInputFlag> inputFlags;
     List<PlayerInputFlag> previousInputFlags;
     Rigidbody2D rb;
+    PlayerProperties properties;
+
+    byte PlayerId { get; set; }
     void Start()
     {
         inputFlags= new List<PlayerInputFlag>();
         previousInputFlags = inputFlags;
         rb = GetComponent<Rigidbody2D>();
+        properties = new PlayerProperties(rb);
+        PlayerId = 0;
+    }
+
+    public void ApplyPlayerProperties(PlayerProperties playerProperties)
+    {
+
     }
 
     private void FixedUpdate()
     {
-        ApplyInputFlags();
+        InitialChecks(); //Run at the start of every frame
+        ApplyInputFlags(); //Apply user inputs
+        DeAccelerationChecks(); //Apply modifiers
+        ApplyValuesToRigidbody();
+    }
+
+
+    private void InitialChecks()
+    {
+        properties.Speed = rb.velocity;
+        properties.Pos = rb.position;
     }
 
     private void ApplyInputFlags()
@@ -26,43 +46,75 @@ public class PlayerControl : MonoBehaviour
         inputFlags = PlayerInputManager.getInputList();
         foreach (PlayerInputFlag flag in inputFlags)
         {
+            Vector2 newSpeed = properties.Speed; //Speed to be edited by each method
             switch (flag)
             {
-                case PlayerInputFlag.up:
-                    MoveUp();
-                    break;
-                case PlayerInputFlag.down:
-                    MoveDown();
-                    break;
                 case PlayerInputFlag.left:
-                    MoveLeft();
+                    MoveLeft(newSpeed);
                     break;
                 case PlayerInputFlag.right:
-                    MoveRight();
+                    MoveRight(newSpeed);
                     break;
+                case PlayerInputFlag.jump:
+                    Jump(newSpeed);
+                    break;
+                
             }
         }
+        //Store previusInputFlags for additional checking
         previousInputFlags = inputFlags;
     }
-
-    private void MoveUp()
+    private void MoveLeft(Vector2 newSpeed)
     {
-        rb.velocity = new Vector2(0, 1);
+        newSpeed.x += -properties.AccelX * Time.deltaTime;
+        properties.Speed = newSpeed;
     }
 
-    private void MoveDown()
+    private void MoveRight(Vector2 newSpeed)
     {
-        rb.velocity = new Vector2(0, -1);
+        newSpeed.x += properties.AccelX * Time.deltaTime;
+        properties.Speed = newSpeed;
     }
 
-    private void MoveLeft()
+    private void Jump(Vector2 newSpeed)
     {
-        rb.velocity = new Vector2(-1, 0);
+        if (properties.IsGround)
+        {
+            newSpeed.y = properties.InitialJumpSpeed;
+            properties.Speed = newSpeed;
+            properties.IsGround = false;
+        }
     }
 
-    private void MoveRight()
+    void DeAccelerationChecks()
     {
-        rb.velocity = new Vector2(1, 0);
+        //Gravity
+        if (!properties.IsGround)
+        {
+            Vector2 newSpeed = properties.Speed;
+            newSpeed.y += -properties.Gravity * Time.deltaTime;
+            properties.Speed = newSpeed;
+        }
+
+        //Drag
+        
+    }
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        Debug.Log(collision.gameObject.name);
+        if (collision.collider.gameObject.CompareTag("SolidGround"))
+        {
+            Debug.Log("Ground collided");
+            properties.IsGround = true;
+        } else
+        {
+           
+        }
+    }
+
+    private void ApplyValuesToRigidbody()
+    {
+        rb.velocity = properties.Speed;
     }
 
 }
