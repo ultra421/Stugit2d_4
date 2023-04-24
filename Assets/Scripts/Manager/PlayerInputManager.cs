@@ -49,10 +49,47 @@ public class PlayerInputManager : MonoBehaviour
         return inputs;
     }
 
+    public static short GetEnumShortDown()
+    {
+        if (instance == null) { throw new NullInputInstanceException("Instance is null"); }
+
+        short inputs = 0;
+        if (Input.GetKeyDown(KeyCode.LeftArrow)) { inputs += (short)PlayerInputFlag.left; }
+        if (Input.GetKeyDown(KeyCode.RightArrow)) { inputs += (short)PlayerInputFlag.right; }
+        if (Input.GetKeyDown(KeyCode.UpArrow)) { inputs += (short)PlayerInputFlag.up; }
+        if (Input.GetKeyDown(KeyCode.DownArrow)) { inputs += (short)PlayerInputFlag.down; }
+        if (Input.GetKeyDown(KeyCode.Z)) { inputs += (short)PlayerInputFlag.jump; }
+        if (Input.GetKeyDown(KeyCode.LeftShift)) { inputs += (short)PlayerInputFlag.run; }
+        if (Input.GetKeyDown(KeyCode.X)) { inputs += (short)PlayerInputFlag.act1; }
+        if (Input.GetKeyDown(KeyCode.C)) { inputs += (short)PlayerInputFlag.act2; }
+        if (Input.GetKeyDown(KeyCode.V)) { inputs += (short)PlayerInputFlag.act3; }
+        return inputs;
+    }
+
     public static List<PlayerInputFlag> getInputList()
     {
         short inputs = GetEnumShort();
        
+        BitArray bitArray = new BitArray(BitConverter.GetBytes(inputs));
+        List<PlayerInputFlag> flagList = new List<PlayerInputFlag>();
+
+        for (int i = 0; i < bitArray.Length; i++)
+        {
+            if (bitArray[i]) //returns true if bit is 1
+            {
+                // 1 << X == to 2^X, it shifts the bits by X so it == power
+                PlayerInputFlag flag = (PlayerInputFlag)(1 << i);
+                flagList.Add(flag);
+            }
+        }
+
+        return flagList;
+    }
+
+    public static List<PlayerInputFlag> getInputListDown()
+    {
+        short inputs = GetEnumShortDown();
+
         BitArray bitArray = new BitArray(BitConverter.GetBytes(inputs));
         List<PlayerInputFlag> flagList = new List<PlayerInputFlag>();
 

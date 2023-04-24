@@ -3,21 +3,32 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-public class PlayerProperties {
-    public float MaxSpeedX { get;set; }
-    public float MaxSpeedY { get;set; }
-    public Vector2 Speed { get;set; }
-    public Vector2 MaxSpeedVector { get;set; }
-    public float Gravity { get; set; }
-    public float InitialJumpSpeed { get; set; }
-    public float AccelX { get; set; }
-    public bool IsGround { get; set; }
-    public Vector2 Pos { get; set; }
+public class PlayerProperties : MonoBehaviour {
+
+    [Header("Transform")]
+    public Vector2 Speed;
+    public Vector2 Pos;
+    [Header("Properties")]
+    public float Gravity;
+    public float InitialJumpSpeed;
+    public float AccelX;
+    public byte PlayerID;
+    public Vector2 MaxSpeedVector;
+    public float MaxSpeedX;
+    public float MaxSpeedY;
+    public bool IsGround;
+    public float DragAccelX;
+    float airTime;
 
 
-    public PlayerProperties(Rigidbody2D rb)
+    public void Start()
     {
-        InitDefaultValues(rb);
+        InitDefaultValues();
+    }
+
+    public PlayerProperties()
+    {
+        InitDefaultValues();
     }
     public PlayerProperties(PlayerProperties newProperties)
     {
@@ -25,8 +36,11 @@ public class PlayerProperties {
         PropertyInfo[] properties = typeof(PlayerProperties).GetProperties();
         foreach(PropertyInfo property in properties)
         {
-            //Iterate trough list and set values of THIS object to the Incoming
-            property.SetValue(this, property.GetValue(newProperties));
+            if (property.GetValue(newProperties) != null)
+            {
+                //Iterate trough list and set values of THIS object to the Incoming
+                property.SetValue(this, property.GetValue(newProperties));
+            } 
         }
     }
 
@@ -41,17 +55,35 @@ public class PlayerProperties {
         }
     }
 
-    private void InitDefaultValues(Rigidbody2D rb)
+    private void InitDefaultValues()
     {
-        MaxSpeedX = 5f;
+        PlayerID = 0;
+        MaxSpeedX = 9f;
         MaxSpeedY = 15f;
         Speed = new Vector2(0, 0);
         MaxSpeedVector = new Vector2(MaxSpeedX, MaxSpeedY);
-        Gravity = 20f;
-        InitialJumpSpeed = 10f;
-        AccelX = 15f;
+        Gravity = 30f;
+        InitialJumpSpeed = 13f;
+        AccelX = 25;
         IsGround = false;
-        Pos = rb.position;
+        Pos = new Vector2(0, 0);
+        DragAccelX = 35;
+    }
+
+    public void FixedUpdate()
+    {
+        CheckAirTime();
+    }
+
+    private void CheckAirTime()
+    {
+        if (!IsGround)
+        {
+            airTime += Time.deltaTime;
+        } else if (IsGround)
+        {
+            airTime = 0;
+        }
     }
 
 }

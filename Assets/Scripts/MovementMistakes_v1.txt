@@ -1,0 +1,12 @@
+----------- Movement V1 Limitations, errors and mistakes --------------
+
+--- Problem
+InputFlag system is confusing, there is no clean way to get the held down and first frame pressed keys
+--- Solution?
+Let PlayerInputManager handle logic with Update and FixedUpdate. For example, let it store the time since a key has been
+pressed. Maybe store this on map
+
+--- Problem
+Player doesn't have a way to know it's status (Jumping ,running, etc)
+--- Solution
+Create a Player Script that extends from an Actor class which contains many common things between entites (such as ID and their position)

@@ -605,6 +605,7 @@ GameObject:
   - component: {fileID: 724776720}
   - component: {fileID: 724776723}
   - component: {fileID: 724776725}
+  - component: {fileID: 724776726}
   - component: {fileID: 724776724}
   m_Layer: 0
   m_Name: ExamplePlayer
@@ -714,6 +715,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1621d87bcb0c5ff4cb77217fd8c62fd9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  properties: {fileID: 724776726}
 --- !u!61 &724776725
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -740,6 +742,29 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &724776726
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 724776719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db296b9f3c5c2ab48969745b14d7aee7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Speed: {x: 0, y: 0}
+  Pos: {x: 0, y: 0}
+  Gravity: 0
+  InitialJumpSpeed: 0
+  AccelX: 0
+  PlayerID: 0
+  MaxSpeedVector: {x: 0, y: 0}
+  MaxSpeedX: 0
+  MaxSpeedY: 0
+  IsGround: 0
+  DragAccelX: 35
 --- !u!1 &766305798
 GameObject:
   m_ObjectHideFlags: 0
