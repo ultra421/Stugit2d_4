@@ -1,10 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting.Antlr3.Runtime;
 using UnityEngine;
 
-public enum PlayerInputFlag
+public enum PlayerAction
 {
     none = 0,
     left = 1,
@@ -20,6 +19,8 @@ public enum PlayerInputFlag
 public class PlayerInputManager : MonoBehaviour
 {
     public static PlayerInputManager instance;
+    private Dictionary<PlayerAction, float> timePressed;
+    private List<PlayerAction> thisFrameActions;
 
     private void Awake()
     {
@@ -32,79 +33,71 @@ public class PlayerInputManager : MonoBehaviour
         }
     }
 
-    public static short GetEnumShort()
+    private void Start()
     {
-       if (instance == null) { throw new NullInputInstanceException("Instance is null"); }
-
-        short inputs = 0;
-        if (Input.GetKey(KeyCode.LeftArrow)) { inputs += (short)PlayerInputFlag.left; }
-        if (Input.GetKey(KeyCode.RightArrow)) { inputs += (short)PlayerInputFlag.right; }
-        if (Input.GetKey(KeyCode.UpArrow)) { inputs += (short)PlayerInputFlag.up; }
-        if (Input.GetKey(KeyCode.DownArrow)) { inputs += (short)PlayerInputFlag.down; }
-        if (Input.GetKey(KeyCode.Z)) { inputs += (short)PlayerInputFlag.jump; }
-        if (Input.GetKey(KeyCode.LeftShift)) { inputs += (short)PlayerInputFlag.run; }
-        if (Input.GetKey(KeyCode.X)) { inputs += (short)PlayerInputFlag.act1; }
-        if (Input.GetKey(KeyCode.C)) { inputs += (short)PlayerInputFlag.act2; }
-        if (Input.GetKey(KeyCode.V)) { inputs += (short)PlayerInputFlag.act3; }
-        return inputs;
-    }
-
-    public static short GetEnumShortDown()
-    {
-        if (instance == null) { throw new NullInputInstanceException("Instance is null"); }
-
-        short inputs = 0;
-        if (Input.GetKeyDown(KeyCode.LeftArrow)) { inputs += (short)PlayerInputFlag.left; }
-        if (Input.GetKeyDown(KeyCode.RightArrow)) { inputs += (short)PlayerInputFlag.right; }
-        if (Input.GetKeyDown(KeyCode.UpArrow)) { inputs += (short)PlayerInputFlag.up; }
-        if (Input.GetKeyDown(KeyCode.DownArrow)) { inputs += (short)PlayerInputFlag.down; }
-        if (Input.GetKeyDown(KeyCode.Z)) { inputs += (short)PlayerInputFlag.jump; }
-        if (Input.GetKeyDown(KeyCode.LeftShift)) { inputs += (short)PlayerInputFlag.run; }
-        if (Input.GetKeyDown(KeyCode.X)) { inputs += (short)PlayerInputFlag.act1; }
-        if (Input.GetKeyDown(KeyCode.C)) { inputs += (short)PlayerInputFlag.act2; }
-        if (Input.GetKeyDown(KeyCode.V)) { inputs += (short)PlayerInputFlag.act3; }
-        return inputs;
-    }
-
-    public static List<PlayerInputFlag> getInputList()
-    {
-        short inputs = GetEnumShort();
-       
-        BitArray bitArray = new BitArray(BitConverter.GetBytes(inputs));
-        List<PlayerInputFlag> flagList = new List<PlayerInputFlag>();
-
-        for (int i = 0; i < bitArray.Length; i++)
+        timePressed = new Dictionary<PlayerAction, float>();
+        foreach(PlayerAction action in Enum.GetValues(typeof(PlayerAction)))
         {
-            if (bitArray[i]) //returns true if bit is 1
+            timePressed.Add(action, 0);
+        }
+        thisFrameActions = new List<PlayerAction>();
+    }
+
+    //Executes before any other script (-1 on Script Execution Order)
+    private void FixedUpdate()
+    {
+        //Get pressed actions as a List
+        GetPressedActions();
+        //Tick the time they have been pressed
+        TickTime();
+    }
+
+    private void LateUpdate()
+    {
+        thisFrameActions.Clear();
+    }
+
+    private void GetPressedActions()
+    {
+        if (Input.GetKey(KeyCode.LeftArrow)) { thisFrameActions.Add(PlayerAction.left); }
+        if (Input.GetKey(KeyCode.RightArrow)) { thisFrameActions.Add(PlayerAction.right); }
+        if (Input.GetKey(KeyCode.UpArrow)) { thisFrameActions.Add(PlayerAction.up); }
+        if (Input.GetKey(KeyCode.DownArrow)) { thisFrameActions.Add(PlayerAction.down); }
+        if (Input.GetKey(KeyCode.Z)) { thisFrameActions.Add(PlayerAction.jump); }
+        if (Input.GetKey(KeyCode.LeftShift)) { thisFrameActions.Add(PlayerAction.run); }
+        if (Input.GetKey(KeyCode.X)) { thisFrameActions.Add(PlayerAction.act1); }
+        if (Input.GetKey(KeyCode.V)) { thisFrameActions.Add(PlayerAction.act2); }
+        if (Input.GetKey(KeyCode.C)) { thisFrameActions.Add(PlayerAction.act3); }
+    }
+
+    private void TickTime()
+    {
+        foreach(PlayerAction action in thisFrameActions)
+        {
+            if (thisFrameActions.Contains(action))
             {
-                // 1 << X == to 2^X, it shifts the bits by X so it == power
-                PlayerInputFlag flag = (PlayerInputFlag)(1 << i);
-                flagList.Add(flag);
+                timePressed[action] += Time.deltaTime;
+            } else
+            {
+                timePressed[action] = 0;
             }
         }
-
-        return flagList;
     }
-
-    public static List<PlayerInputFlag> getInputListDown()
+    public bool GetAction(PlayerAction action)
     {
-        short inputs = GetEnumShortDown();
-
-        BitArray bitArray = new BitArray(BitConverter.GetBytes(inputs));
-        List<PlayerInputFlag> flagList = new List<PlayerInputFlag>();
-
-        for (int i = 0; i < bitArray.Length; i++)
-        {
-            if (bitArray[i]) //returns true if bit is 1
-            {
-                // 1 << X == to 2^X, it shifts the bits by X so it == power
-                PlayerInputFlag flag = (PlayerInputFlag)(1 << i);
-                flagList.Add(flag);
-            }
-        }
-
-        return flagList;
+        return thisFrameActions.Contains(action);
     }
+
+    public bool GetActionDown(PlayerAction action)
+    {
+        return timePressed[action] >= Time.deltaTime;
+    }
+
+    public float ActionTime(PlayerAction action)
+    {
+        return timePressed[action];
+    }
+
 }
 
 public class NullInputInstanceException : Exception 
