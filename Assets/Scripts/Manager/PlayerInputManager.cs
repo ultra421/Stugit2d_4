@@ -20,6 +20,7 @@ public class PlayerInputManager : MonoBehaviour
 {
     public static PlayerInputManager instance;
     private Dictionary<PlayerAction, float> timePressed;
+    private Dictionary<PlayerAction, float> timeSincePressed;
     private List<PlayerAction> thisFrameActions;
 
     private void Awake()
@@ -36,9 +37,11 @@ public class PlayerInputManager : MonoBehaviour
     private void Start()
     {
         timePressed = new Dictionary<PlayerAction, float>();
-        foreach(PlayerAction action in Enum.GetValues(typeof(PlayerAction)))
+        timeSincePressed = new Dictionary<PlayerAction, float>();
+        foreach (PlayerAction action in Enum.GetValues(typeof(PlayerAction)))
         {
             timePressed.Add(action, 0);
+            timeSincePressed.Add(action, 0);
         }
         thisFrameActions = new List<PlayerAction>();
     }
@@ -54,6 +57,7 @@ public class PlayerInputManager : MonoBehaviour
 
     private void LateUpdate()
     {
+        //Clear this frame's frameActions after FixedUpdate has been processed
         thisFrameActions.Clear();
     }
 
@@ -70,16 +74,18 @@ public class PlayerInputManager : MonoBehaviour
         if (Input.GetKey(KeyCode.C)) { thisFrameActions.Add(PlayerAction.act3); }
     }
 
+    /* Iterates over all the possible actions and sums the time passed to the ones that have been pressed
+     * And the ones that haven't are reset to 0 */
     private void TickTime()
     {
-        foreach(PlayerAction action in thisFrameActions)
-        {
+        foreach (PlayerAction action in Enum.GetValues(typeof(PlayerAction))) {
             if (thisFrameActions.Contains(action))
             {
                 timePressed[action] += Time.deltaTime;
             } else
             {
                 timePressed[action] = 0;
+                timeSincePressed[action] += Time.deltaTime;
             }
         }
     }
@@ -98,6 +104,10 @@ public class PlayerInputManager : MonoBehaviour
         return timePressed[action];
     }
 
+    public List<PlayerAction> GetFrameActions()
+    {
+        return thisFrameActions;
+    }
 }
 
 public class NullInputInstanceException : Exception 
