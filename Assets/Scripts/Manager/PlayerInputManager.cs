@@ -53,6 +53,8 @@ public class PlayerInputManager : MonoBehaviour
         GetPressedActions();
         //Tick the time they have been pressed
         TickTime();
+        //Used for early inputs
+        InputCompensation();
     }
 
     private void LateUpdate()
@@ -87,6 +89,14 @@ public class PlayerInputManager : MonoBehaviour
                 timePressed[action] = 0;
                 timeSincePressed[action] += Time.deltaTime;
             }
+        }
+    }
+    //Used for compensation of inputs, such as pressing jump before touching ground
+    private void InputCompensation()
+    {
+        if (timeSincePressed[PlayerAction.jump] < 0.15f)
+        {
+            thisFrameActions.Add(PlayerAction.jump);
         }
     }
     public bool GetAction(PlayerAction action)

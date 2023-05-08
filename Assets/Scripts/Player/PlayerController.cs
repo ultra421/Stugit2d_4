@@ -13,9 +13,11 @@ public class PlayerController : MonoBehaviour
     public float AccelX;
     public float jumpVel;
     public float gravity;
+    public float gravityMultiplier;
     public bool isGround;
 
     private Rigidbody2D rb;
+    private Dictionary<string, float> multipliers;
 
     private void Start()
     {
@@ -27,16 +29,21 @@ public class PlayerController : MonoBehaviour
         MaxSpeedY = 15f;
         AccelX = 25f;
         jumpVel = 15f;
-        gravity = 19.6f;
+        gravity = 40f;
         isGround = false;
 
         pim = PlayerInputManager.instance;
+        multipliers = new Dictionary<string, float>
+        {
+            { "gravity", 1 }
+        };
     }
 
     private void FixedUpdate()
     {
         PreProcessChecks(); //Restores and prepares variables for processing
-        ProcessActions();   //Processes actions read from PlayerInputManager 
+        SetMultipliers();   //Process the multipliers
+        ProcessActions();   //Processes actions read from PlayerInputManager
         Gravity();          //Gravity
         ApplyActions();     //Applies the actions to the rigidbody
     }
@@ -44,6 +51,16 @@ public class PlayerController : MonoBehaviour
     {
         position = rb.position;
         velocity = rb.velocity;
+    }
+    private void SetMultipliers()
+    {
+        if (pim.GetAction(PlayerAction.jump))
+        {
+            multipliers["gravity"] = 0.65f;
+        } else
+        {
+            multipliers["gravity"] = 1;
+        }
     }
     private void ProcessActions()
     {
@@ -75,8 +92,13 @@ public class PlayerController : MonoBehaviour
     }
     private void Jump()
     {
+        //Return if pressed for longer than 0.4f seconds
+        if (pim.ActionTime(PlayerAction.jump) > 0.4f) { return; }
+
+        //Set gravity multiplier for falling slower/faster
         if (isGround)
         {
+            Debug.Log("Jump!");
             velocity.y = jumpVel;
         }
     }
@@ -84,31 +106,19 @@ public class PlayerController : MonoBehaviour
     {
         if (!isGround)
         {
-            velocity.y -= gravity * Time.deltaTime;
+            velocity.y -= gravity * multipliers["gravity"] * Time.deltaTime;
         }
     }
     private void ApplyActions()
     {
         rb.velocity = velocity;
     }
-
-    private void OnCollisionEnter2D(Collision2D collision)
+    
+    //Functions for external use
+    public void SetGround(bool status)
     {
-        if (collision.collider.CompareTag("SolidGround"))
-        {
-            Debug.Log("Touched Ground");
-            isGround = true;
-            velocity.y = 0;
-        }
+        isGround = status;
     }
 
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        if (collision.collider.CompareTag("SolidGround"))
-        {
-            Debug.Log("Left ground");
-            isGround = false;
-        }
-    }
 
 }
