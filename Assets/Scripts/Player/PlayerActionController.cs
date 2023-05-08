@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+public class PlayerActionController : MonoBehaviour
 {
     private PlayerInputManager pim;
     [Header("Positional")]
@@ -12,12 +12,14 @@ public class PlayerController : MonoBehaviour
     public float MaxSpeedY;
     public float AccelX;
     public float jumpVel;
+    public float jumps;
     public float gravity;
     public float gravityMultiplier;
     public bool isGround;
 
     private Rigidbody2D rb;
     private Dictionary<string, float> multipliers;
+    private PlayerMiscTimer timer;
 
     private void Start()
     {
@@ -29,6 +31,7 @@ public class PlayerController : MonoBehaviour
         MaxSpeedY = 15f;
         AccelX = 25f;
         jumpVel = 15f;
+        jumps = 1;
         gravity = 40f;
         isGround = false;
 
@@ -37,6 +40,8 @@ public class PlayerController : MonoBehaviour
         {
             { "gravity", 1 }
         };
+
+        timer = GetComponent<PlayerMiscTimer>();
     }
 
     private void FixedUpdate()
@@ -59,7 +64,7 @@ public class PlayerController : MonoBehaviour
             multipliers["gravity"] = 0.65f;
         } else
         {
-            multipliers["gravity"] = 1;
+            multipliers["gravity"] = 2;
         }
     }
     private void ProcessActions()
@@ -67,7 +72,7 @@ public class PlayerController : MonoBehaviour
         List<PlayerAction> thisFrameActions = pim.GetFrameActions();
         foreach (PlayerAction action in thisFrameActions)
         {
-            Debug.Log("Frame action:" + action.ToString() + " pressed for " + pim.ActionTime(action));
+            //Debug.Log("Frame action:" + action.ToString() + " pressed for " + pim.ActionTime(action));
             switch (action)
             {
                 case PlayerAction.left:
@@ -96,10 +101,10 @@ public class PlayerController : MonoBehaviour
         if (pim.ActionTime(PlayerAction.jump) > 0.4f) { return; }
 
         //Set gravity multiplier for falling slower/faster
-        if (isGround)
+        if (isGround || (timer.sinceGround < 0.08f && jumps != 0))
         {
-            Debug.Log("Jump!");
             velocity.y = jumpVel;
+            jumps--;
         }
     }
     private void Gravity()
@@ -118,6 +123,10 @@ public class PlayerController : MonoBehaviour
     public void SetGround(bool status)
     {
         isGround = status;
+        if (isGround)
+        {
+            jumps = 1;
+        }
     }
 
 

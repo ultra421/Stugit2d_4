@@ -6,11 +6,18 @@ using UnityEngine;
 
 public class PlayerCollisionManager : MonoBehaviour
 {
-    PlayerController controller;
+    PlayerActionController controller;
 
     private void Start()
     {
-        controller = gameObject.GetComponentInParent<PlayerController>();
+        controller = gameObject.GetComponentInParent<PlayerActionController>();
+        //Ignore all gameobjects that are balls
+        GameObject[] ballList = GameObject.FindGameObjectsWithTag("Ball");
+        foreach(GameObject ball in ballList)
+        {
+            Debug.Log("Ignoring " + ball);
+            Physics2D.IgnoreCollision(GetComponent<BoxCollider2D>(),ball.GetComponent<CircleCollider2D>());
+        }
     }
 
     private void OnCollisionStay2D(Collision2D collision)
@@ -40,7 +47,7 @@ public class PlayerCollisionManager : MonoBehaviour
             //Debug.Log("Contact at " + contact.point);
             //Sum to average to get the average
             float angle = Vector2.Angle(contact.normal, Vector2.up);
-            Debug.Log("Angle between point " + count + " " + angle);
+            //Debug.Log("Angle between point " + count + " " + angle);
             count++;
 
             if (angle > 45)
