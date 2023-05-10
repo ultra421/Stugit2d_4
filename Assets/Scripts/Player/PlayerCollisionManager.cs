@@ -13,10 +13,10 @@ public class PlayerCollisionManager : MonoBehaviour
         controller = gameObject.GetComponentInParent<PlayerActionController>();
         //Ignore all gameobjects that are balls
         GameObject[] ballList = GameObject.FindGameObjectsWithTag("Ball");
-        foreach(GameObject ball in ballList)
+        foreach (GameObject ball in ballList)
         {
             Debug.Log("Ignoring " + ball);
-            Physics2D.IgnoreCollision(GetComponent<BoxCollider2D>(),ball.GetComponent<CircleCollider2D>());
+            Physics2D.IgnoreCollision(GetComponent<BoxCollider2D>(), ball.GetComponent<CircleCollider2D>());
         }
     }
 

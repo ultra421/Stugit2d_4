@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerActionController : MonoBehaviour
@@ -11,6 +12,7 @@ public class PlayerActionController : MonoBehaviour
     public float MaxSpeedX;
     public float MaxSpeedY;
     public float AccelX;
+    public float dragAccelX;
     public float jumpVel;
     public float jumps;
     public float gravity;
@@ -20,6 +22,7 @@ public class PlayerActionController : MonoBehaviour
     private Rigidbody2D rb;
     private Dictionary<string, float> multipliers;
     private PlayerMiscTimer timer;
+    private Vector2 lastVelocity;
 
     private void Start()
     {
@@ -27,10 +30,11 @@ public class PlayerActionController : MonoBehaviour
         position = rb.position;
         velocity = rb.velocity;
 
-        MaxSpeedX = 5f;
-        MaxSpeedY = 15f;
-        AccelX = 25f;
-        jumpVel = 15f;
+        MaxSpeedX = 11f;
+        MaxSpeedY = 13f;
+        AccelX = 60f;
+        dragAccelX = 40f;
+        jumpVel = 13f;
         jumps = 1;
         gravity = 40f;
         isGround = false;
@@ -38,19 +42,22 @@ public class PlayerActionController : MonoBehaviour
         pim = PlayerInputManager.instance;
         multipliers = new Dictionary<string, float>
         {
-            { "gravity", 1 }
+            { "gravity", 1 },
+            { "accelX",1 }
         };
 
         timer = GetComponent<PlayerMiscTimer>();
+        lastVelocity = velocity;
     }
 
     private void FixedUpdate()
     {
-        PreProcessChecks(); //Restores and prepares variables for processing
-        SetMultipliers();   //Process the multipliers
-        ProcessActions();   //Processes actions read from PlayerInputManager
-        Gravity();          //Gravity
-        ApplyActions();     //Applies the actions to the rigidbody
+        PreProcessChecks();     //Restores and prepares variables for processing
+        SetMultipliers();       //Process the multipliers
+        ProcessActions();       //Processes actions read from PlayerInputManager
+        PostProcessActions();   //Check stuff after processing actions, such as drag
+        Gravity();              //Gravity
+        ApplyActions();         //Applies the actions to the rigidbody
     }
     private void PreProcessChecks()
     {
@@ -64,7 +71,7 @@ public class PlayerActionController : MonoBehaviour
             multipliers["gravity"] = 0.65f;
         } else
         {
-            multipliers["gravity"] = 2;
+            multipliers["gravity"] = 3;
         }
     }
     private void ProcessActions()
@@ -89,18 +96,20 @@ public class PlayerActionController : MonoBehaviour
     }
     private void MoveLeft()
     {
-        velocity.x -= AccelX * Time.deltaTime;
+        //If going right, when moving left set multiplier to 2
+        multipliers["accelX"] = velocity.x > 0 ? 2 : 1;
+        velocity.x -= AccelX * Time.deltaTime * multipliers["accelX"];
     }
     private void MoveRight()
     {
-        velocity.x += AccelX * Time.deltaTime;
+        multipliers["accelX"] = velocity.x < 0 ? 2 : 1;
+        velocity.x += AccelX * Time.deltaTime * multipliers["accelX"]; 
     }
     private void Jump()
     {
         //Return if pressed for longer than 0.4f seconds
         if (pim.ActionTime(PlayerAction.jump) > 0.4f) { return; }
 
-        //Set gravity multiplier for falling slower/faster
         if (isGround || (timer.sinceGround < 0.08f && jumps != 0))
         {
             velocity.y = jumpVel;
@@ -114,9 +123,68 @@ public class PlayerActionController : MonoBehaviour
             velocity.y -= gravity * multipliers["gravity"] * Time.deltaTime;
         }
     }
+    private void PostProcessActions()
+    {
+        Drag();
+        CheckMaxSpeed();
+    }
+    private void Drag()
+    {
+        Debug.Log("velocity.x = " + velocity + " lastVel = " + lastVelocity);
+        if (velocity.x == 0)
+        {
+            return;
+        }
+
+        //Check if sign change
+        if (!IsHorizontalPress() && velocity.x != 0)
+        { //If not pressing keys
+            if (velocity.x > 0)
+            { //Right
+                velocity.x -= dragAccelX * Time.deltaTime;
+            }
+            else
+            { //Left
+                velocity.x += dragAccelX * Time.deltaTime;
+            }
+        }
+
+        if (!(velocity.x * lastVelocity.x > 0) && !IsHorizontalPress() 
+            && velocity.x < 1 && velocity.x > -1)
+        { // Opposite symbols
+            velocity.x = 0;
+        }
+    }
+    private void CheckMaxSpeed()
+    {
+        if (velocity.x > MaxSpeedX)
+        {
+            velocity.x = MaxSpeedX;
+        } else if (velocity.x < -MaxSpeedX)
+        {
+            velocity.x = -MaxSpeedX;
+        }
+
+        if( velocity.y > MaxSpeedY)
+        {
+            velocity.y = MaxSpeedY;
+        } else if(velocity.y < -MaxSpeedY)
+        {
+            velocity.y = -MaxSpeedY;
+        }
+    }
+    private bool IsHorizontalPress()
+    {
+        List<PlayerAction> frameActions = pim.GetFrameActions();
+        return (
+           frameActions.Contains(PlayerAction.left) ||
+           frameActions.Contains(PlayerAction.right)
+        );
+    }
     private void ApplyActions()
     {
         rb.velocity = velocity;
+        lastVelocity = new Vector2(velocity.x,velocity.y);
     }
     
     //Functions for external use
