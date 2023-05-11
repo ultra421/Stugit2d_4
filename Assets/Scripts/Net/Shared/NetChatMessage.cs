@@ -37,7 +37,7 @@ public class NetChatMessage : NetMessage
         ChatMessage = reader.ReadFixedString128();
 
     }
-    public override void ReceivedOnServer(BaseServer server)
+    public override void ReceivedOnServer(ServerManager server)
     {
         Debug.Log("SERVER::" + ChatMessage);
     }

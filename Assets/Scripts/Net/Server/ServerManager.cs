@@ -2,51 +2,47 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Networking.Transport;
-using Unity.Collections;
-using System;
 
-public class BaseServer : MonoBehaviour
+public class ServerManager : MonoBehaviour
 {
     public NetworkDriver driver;
     protected List<NetworkConnection> connections;
 
-#if UNITY_EDITOR
-    private void Start() { Init(); }
-    private void Update() { UpdateServer(); }
-    private void OnDestroy() { ShutDown(); }
-
-#endif
-
-    public virtual void Init()
+    private void Start()
     {
+        ServerInfoTransfer transfer = GameObject.Find("InfoTransfer").GetComponent<ServerInfoTransfer>();
+        Debug.Log("Got Info from transfer" + transfer.username);
+
+        return;
         //Init the driver
         driver = NetworkDriver.Create();
-        NetworkEndPoint endpoint = NetworkEndPoint.AnyIpv4; //Who can connect to us
+        //Set any ip to be able to connect
+        NetworkEndPoint endpoint = NetworkEndPoint.AnyIpv4;
         endpoint.Port = 5522;
         if (driver.Bind(endpoint) != 0)
         {
-            Debug.LogError("There was an error binding to port " + endpoint.Port);
-        }
-        else
+            Debug.LogError("Error at connection port" + endpoint.Port);
+        } else
         {
             driver.Listen();
         }
-        //Init the connection list
         connections = new List<NetworkConnection>(4);
-
     }
-    public virtual void ShutDown()
+
+    private void OnDestroy()
     {
         driver.Dispose();
         connections.Clear();
     }
-    public virtual void UpdateServer()
+
+    private void Update()
     {
-        driver.ScheduleUpdate().Complete(); //Unity Job system, so the thread unlockes?
-        CleanupConnections(); //If connections fails remove
-        AcceptNewConnections(); //Accept incoming connections
-        UpdateMessagePump(); //Read messages
+        driver.ScheduleUpdate().Complete();
+        CleanupConnections();
+        AcceptNewConnections();
+        UpdateMessagePump();
     }
+
     private void CleanupConnections()
     {
         for (int i = 0; i < connections.Count; i++)
@@ -54,10 +50,11 @@ public class BaseServer : MonoBehaviour
             if (!connections[i].IsCreated)
             {
                 connections.RemoveAt(i);
-                i--; //Go back as removeAt shifts the array by -1 when delete
+                i--;
             }
         }
     }
+
     private void AcceptNewConnections()
     {
         NetworkConnection c;
@@ -67,13 +64,14 @@ public class BaseServer : MonoBehaviour
             Debug.Log("Accepted a connection " + c.GetHashCode());
         }
     }
-    protected virtual void UpdateMessagePump()
+
+    private void UpdateMessagePump()
     {
         DataStreamReader stream;
         for (int i = 0; i < connections.Count; i++)
         {
             NetworkEvent.Type cmd;
-            while ((cmd = driver.PopEventForConnection(connections[i],out stream)) != NetworkEvent.Type.Empty)
+            while ((cmd = driver.PopEventForConnection(connections[i], out stream)) != NetworkEvent.Type.Empty)
             {
                 //If data is sent
                 if (cmd == NetworkEvent.Type.Data)
@@ -81,46 +79,50 @@ public class BaseServer : MonoBehaviour
                     OnData(stream);
                 }
                 //If player disconnects
-                else if  (cmd == NetworkEvent.Type.Disconnect){
+                else if (cmd == NetworkEvent.Type.Disconnect)
+                {
                     Debug.Log("Client diesconnected from server");
                     connections[i] = default(NetworkConnection);
                 }
             }
         }
     }
-    public virtual void OnData(DataStreamReader stream)
+
+    public void OnData(DataStreamReader stream)
     {
-        NetMessage msg = null; //Unknown type of message
-        //Get operation code from first byte of message
+        NetMessage msg = null;
+        //First byte of message will be the operation code
         var opCode = (OpCode)stream.ReadByte();
         Debug.Log("Recieved OpCode" + opCode);
         switch (opCode)
         {
-            case OpCode.CHAT_MESSAGE: msg = new NetChatMessage(stream); break;
             case OpCode.PLAYER_POSITION: msg = new NetPlayerPos(stream); break;
             default:
-                Debug.Log("Message recieved had no OpCode " + opCode);
+                Debug.Log("Message recieved had no OPCode " + opCode);
                 break;
         }
 
-        //Should already be parsed with the constructor
-        //msg.ReceivedOnServer(this);
-    } 
-    public virtual void BroadCast(NetMessage msg) //Send messages to everyone
+        //Message has been processed and reecieved on server
+        msg.ReceivedOnServer(this);
+    }
+
+    public void BroadCast(NetMessage msg)
     {
-        foreach (NetworkConnection connection in connections)
+        foreach(NetworkConnection connection in connections)
         {
             if (connection.IsCreated)
             {
                 SendToClient(connection, msg);
             }
-        }   
+        }
     }
-    public virtual void SendToClient(NetworkConnection connection, NetMessage msg)
+
+    public void SendToClient(NetworkConnection connection, NetMessage msg)
     {
         DataStreamWriter writer;
         driver.BeginSend(connection, out writer);
         msg.Serialize(ref writer);
         driver.EndSend(writer);
     }
+
 }

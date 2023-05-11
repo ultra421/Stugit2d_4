@@ -10,7 +10,7 @@ public class PlayerCollisionManager : MonoBehaviour
 
     private void Start()
     {
-        controller = gameObject.GetComponentInParent<PlayerActionController>();
+        controller = gameObject.GetComponent<PlayerActionController>();
         //Ignore all gameobjects that are balls
         GameObject[] ballList = GameObject.FindGameObjectsWithTag("Ball");
         foreach (GameObject ball in ballList)

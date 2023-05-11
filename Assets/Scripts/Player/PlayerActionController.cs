@@ -9,6 +9,7 @@ public class PlayerActionController : MonoBehaviour
     [Header("Positional")]
     public Vector2 velocity, position;
     [Header("Attribtues")]
+    public byte playerId;
     public float MaxSpeedX;
     public float MaxSpeedY;
     public float AccelX;
@@ -29,6 +30,7 @@ public class PlayerActionController : MonoBehaviour
         rb = this.transform.GetComponent<Rigidbody2D>();
         position = rb.position;
         velocity = rb.velocity;
+        playerId = 0;
 
         MaxSpeedX = 11f;
         MaxSpeedY = 13f;

@@ -9,6 +9,6 @@ public class NetMessage
     public virtual void Serialize(ref DataStreamWriter writer) { }
     public virtual void Deserialize(DataStreamReader reader) { }
     public virtual void ReceivedOnClient() { }
-    public virtual void ReceivedOnServer(BaseServer server) { } //Remove BaseServer from this
+    public virtual void ReceivedOnServer(ServerManager server) { } 
 
 }
