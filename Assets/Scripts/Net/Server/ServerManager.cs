@@ -7,13 +7,21 @@ public class ServerManager : MonoBehaviour
 {
     public NetworkDriver driver;
     protected List<NetworkConnection> connections;
+    public static ServerManager instance;
 
-    private void Start()
+    private void Awake()
     {
-        ServerInfoTransfer transfer = GameObject.Find("InfoTransfer").GetComponent<ServerInfoTransfer>();
-        Debug.Log("Got Info from transfer" + transfer.username);
+        if (instance == null)
+        {
+            instance = this;
+        } else
+        {
+            this.gameObject.SetActive(false);
+            return;
+        }
 
-        return;
+        ServerInfoTransfer transfer = ServerInfoTransfer.Instance;
+        if (transfer.connectionType != ConnectionType.HOST) { this.gameObject.SetActive(false); return; }
         //Init the driver
         driver = NetworkDriver.Create();
         //Set any ip to be able to connect
@@ -24,6 +32,7 @@ public class ServerManager : MonoBehaviour
             Debug.LogError("Error at connection port" + endpoint.Port);
         } else
         {
+            Debug.Log("Server is listening!");
             driver.Listen();
         }
         connections = new List<NetworkConnection>(4);
@@ -31,11 +40,12 @@ public class ServerManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        return;
         driver.Dispose();
         connections.Clear();
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         driver.ScheduleUpdate().Complete();
         CleanupConnections();
@@ -62,7 +72,22 @@ public class ServerManager : MonoBehaviour
         {
             connections.Add(c);
             Debug.Log("Accepted a connection " + c.GetHashCode());
+            SendNewPlayerInfo(c);
         }
+    }
+
+    private void SendNewPlayerInfo(NetworkConnection c)
+    {
+        List<WelcomePlayerPayload> playerInfoList = new List<WelcomePlayerPayload>();
+        Dictionary<byte, GameObject> playerList = PlayerListManager.Instance.getPlayerList();
+        foreach(KeyValuePair<byte,GameObject> pair in playerList)
+        {
+            GameObject player = pair.Value;
+            WelcomePlayerPayload wpp = new WelcomePlayerPayload(player.transform.position, (byte)pair.Key);
+            playerInfoList.Add(wpp);
+        }
+        NetWelcomePlayer message = new NetWelcomePlayer(playerInfoList);
+        SendToClient(c, message);
     }
 
     private void UpdateMessagePump()

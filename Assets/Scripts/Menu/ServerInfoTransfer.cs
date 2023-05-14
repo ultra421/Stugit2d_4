@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 
 public enum ConnectionType
 {
@@ -15,6 +16,18 @@ public class ServerInfoTransfer : MonoBehaviour
     public string ip;
     public int port;
     public string username;
+
+    public static ServerInfoTransfer Instance;
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        } else
+        {
+            Destroy(this.gameObject);
+        }
+    }
 
     void Start()
     {

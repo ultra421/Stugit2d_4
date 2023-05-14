@@ -61,6 +61,17 @@ public class PlayerActionController : MonoBehaviour
         Gravity();              //Gravity
         ApplyActions();         //Applies the actions to the rigidbody
     }
+
+    private void LateUpdate()
+    {
+        //Network stuff takes place here
+        Vector3 currentPos = this.transform.position;
+        ClientManager clientManager = ClientManager.Instance;
+        NetPlayerPos message = new NetPlayerPos(clientManager.playerId,
+        currentPos.x,currentPos.y,currentPos.z);
+
+        clientManager.SendtoServer(message);
+    }
     private void PreProcessChecks()
     {
         position = rb.position;
@@ -132,7 +143,7 @@ public class PlayerActionController : MonoBehaviour
     }
     private void Drag()
     {
-        Debug.Log("velocity.x = " + velocity + " lastVel = " + lastVelocity);
+        //Debug.Log("velocity.x = " + velocity + " lastVel = " + lastVelocity);
         if (velocity.x == 0)
         {
             return;
