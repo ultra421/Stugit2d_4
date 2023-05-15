@@ -89,11 +89,12 @@ public class ClientManager : MonoBehaviour
         NetMessage msg = null; //Unknown type of message
         //Get operation code from first byte of message
         var opCode = (OpCode)stream.ReadByte();
-        Debug.Log("Recieved OpCode" + opCode);
         switch (opCode)
         {
             case OpCode.PLAYER_POSITION: msg = new NetPlayerPos(stream); break;
-            case OpCode.INITIAL_PLAYER_LIST: msg = new NetWelcomePlayer(stream); break;
+            case OpCode.NEW_PLAYER: msg = new NetNewPlayer(stream); break;
+            case OpCode.BALL_MESSAGE: msg = new NetBallMessage(stream); break;
+            case OpCode.UPDATE_SCORE: msg = new NetUpdateScore(stream); break;
             default:
                 Debug.Log("Message recieved had no OpCode " + opCode);
                 break;

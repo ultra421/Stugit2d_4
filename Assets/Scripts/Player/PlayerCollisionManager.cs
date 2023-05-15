@@ -11,14 +11,24 @@ public class PlayerCollisionManager : MonoBehaviour
     {
         controller = gameObject.GetComponent<PlayerActionController>();
         //Ignore all gameobjects that are balls
-        GameObject[] ballList = GameObject.FindGameObjectsWithTag("Ball");
-        foreach (GameObject ball in ballList)
+        //GameObject[] ballList = GameObject.FindGameObjectsWithTag("Ball");
+        //foreach (GameObject ball in ballList)
+        //{
+        //    Debug.Log("Ignoring " + ball);
+        //    Physics2D.IgnoreCollision(GetComponent<BoxCollider2D>(), ball.GetComponent<CircleCollider2D>());
+        //}
+    }
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.collider.CompareTag("Ball"))
         {
-            Debug.Log("Ignoring " + ball);
-            Physics2D.IgnoreCollision(GetComponent<BoxCollider2D>(), ball.GetComponent<CircleCollider2D>());
+            GameObject ball = collision.collider.gameObject;
+            Rigidbody2D ballRb = ball.GetComponent<Rigidbody2D>();
+            NetBallMessage message = new NetBallMessage(ball.transform.position, ballRb.velocity, ball.transform.forward, 
+                (byte)ClientManager.Instance.playerId);
+            ClientManager.Instance.SendtoServer(message);
         }
     }
-
     private void OnCollisionStay2D(Collision2D collision)
     {
         if (collision.collider.CompareTag("SolidGround"))

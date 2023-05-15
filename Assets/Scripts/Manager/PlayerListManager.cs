@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 
 public class PlayerListManager : MonoBehaviour
@@ -9,6 +10,7 @@ public class PlayerListManager : MonoBehaviour
     [SerializeField] GameObject controlPlayerPrefab;
     [SerializeField] GameObject serverControlPlayerPrefab;
     private Dictionary<byte, GameObject> playerList;
+    private Dictionary<byte, byte> playerScore;
 
     private void Awake()
     {
@@ -16,6 +18,7 @@ public class PlayerListManager : MonoBehaviour
         {
             Instance = this;
             playerList= new Dictionary<byte, GameObject>();
+            playerScore = new Dictionary<byte, byte>();
         } else
         {
             Destroy(this.gameObject);
@@ -31,9 +34,17 @@ public class PlayerListManager : MonoBehaviour
     {
         playerList.Add(playerID, Instantiate(controlPlayerPrefab));
     }
-    public void CreatePlayer(byte playerId)
+    public void CreateControllablePlayer(byte playerID,Vector3 pos)
     {
-        playerList.Add(playerId, Instantiate(serverControlPlayerPrefab));
+        GameObject newPlayer = Instantiate(controlPlayerPrefab,pos,Quaternion.identity);
+        playerList.Add(playerID, newPlayer);
+        playerScore.Add(playerID, 0);
+    }
+    public void CreatePlayer(byte playerId,Vector3 pos)
+    {
+        GameObject newPlayer = Instantiate(serverControlPlayerPrefab, pos, Quaternion.identity);
+        playerList.Add(playerId, newPlayer);
+        playerScore.Add(playerId, 0);
     }
     public void CreatePlayer()
     {
@@ -42,8 +53,37 @@ public class PlayerListManager : MonoBehaviour
 
     public GameObject getPlayerById(byte playerId)
     {
-        return playerList[playerId];
+        GameObject player;
+        playerList.TryGetValue(playerId, out player);
+        return player;
     }
 
     public Dictionary<byte,GameObject> getPlayerList() { return playerList; }
+
+    public byte getPlayerId(GameObject player)
+    {
+        foreach(KeyValuePair<byte,GameObject> keyValuePair in playerList)
+        {
+            if (keyValuePair.Value == player) 
+            {
+                return keyValuePair.Key;
+            }
+        }
+        throw new Exception("Player not found");
+    }
+
+    public void UpdatePlayerScore(byte playerId, byte score)
+    {
+        playerScore[playerId] = score;
+    }
+
+    public byte getPlayerScore(byte playerId)
+    {
+        return playerScore[playerId];
+    }
+
+    public Dictionary<byte,byte> getPlayerScoreMap()
+    {
+        return playerScore;
+    }
 }

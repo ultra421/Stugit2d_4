@@ -68,7 +68,7 @@ public class PlayerActionController : MonoBehaviour
         Vector3 currentPos = this.transform.position;
         ClientManager clientManager = ClientManager.Instance;
         NetPlayerPos message = new NetPlayerPos(clientManager.playerId,
-        currentPos.x,currentPos.y,currentPos.z);
+        currentPos.x,currentPos.y,currentPos.z, rb.velocity);
 
         clientManager.SendtoServer(message);
     }

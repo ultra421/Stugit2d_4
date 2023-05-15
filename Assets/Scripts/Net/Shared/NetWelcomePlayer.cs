@@ -89,7 +89,7 @@ public class NetWelcomePlayer : NetMessage
             foreach(WelcomePlayerPayload info in playerInfo)
             {
                 PlayerListManager plm = PlayerListManager.Instance;
-                plm.CreatePlayer(info.id);
+                //plm.CreatePlayer(info.id);
             }
         }
     }

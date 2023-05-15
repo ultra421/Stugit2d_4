@@ -12,8 +12,6 @@ GameObject:
   - component: {fileID: 1312435091014928995}
   - component: {fileID: 1312435091014928992}
   - component: {fileID: 1312435091014928998}
-  - component: {fileID: 1312435091014928996}
-  - component: {fileID: 1312435091014929002}
   m_Layer: 0
   m_Name: serverControlPlayer
   m_TagString: Player
@@ -135,28 +133,3 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!114 &1312435091014928996
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1312435091014929020}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 247c2c19daf8ad44aa9c2185bad40950, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1312435091014929002
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1312435091014929020}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f8d7658a573356441bd84a52476ef8c3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  sinceGround: 0

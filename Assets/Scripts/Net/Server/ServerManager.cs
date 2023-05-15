@@ -78,16 +78,27 @@ public class ServerManager : MonoBehaviour
 
     private void SendNewPlayerInfo(NetworkConnection c)
     {
-        List<WelcomePlayerPayload> playerInfoList = new List<WelcomePlayerPayload>();
-        Dictionary<byte, GameObject> playerList = PlayerListManager.Instance.getPlayerList();
-        foreach(KeyValuePair<byte,GameObject> pair in playerList)
-        {
-            GameObject player = pair.Value;
-            WelcomePlayerPayload wpp = new WelcomePlayerPayload(player.transform.position, (byte)pair.Key);
-            playerInfoList.Add(wpp);
-        }
-        NetWelcomePlayer message = new NetWelcomePlayer(playerInfoList);
+        PlayerListManager plm = PlayerListManager.Instance;
+        byte newPlayerId = (byte)plm.getPlayerList().Count;
+
+        //First send the controllable player
+        NetNewPlayer message = new NetNewPlayer(newPlayerId, true, Vector3.zero);
         SendToClient(c, message);
+        Debug.Log("Sent to client their character");
+        
+        //Then send the players ingame to new connection (uncontrollable)
+        foreach(KeyValuePair<byte,GameObject> pair in plm.getPlayerList())
+        {
+            Debug.Log("Sending playerId " + pair.Key + " to Id " + message.playerId);
+            NetNewPlayer message2 = new NetNewPlayer(pair.Key, false, pair.Value.transform.position);
+            SendToClient(c, message2);
+        }
+        Debug.Log("Sent other player's info to client");
+
+        //FInally send the existing players the new player info
+        NetNewPlayer message3 = new NetNewPlayer(newPlayerId, false, Vector3.zero);
+        BroadCastExcept(message3,c); //Broadcasts except to one connection
+        Debug.Log("Sent new player to other players");
     }
 
     private void UpdateMessagePump()
@@ -118,10 +129,13 @@ public class ServerManager : MonoBehaviour
         NetMessage msg = null;
         //First byte of message will be the operation code
         var opCode = (OpCode)stream.ReadByte();
-        Debug.Log("Recieved OpCode" + opCode);
+        //Debug.Log("Recieved OpCode" + opCode);
         switch (opCode)
         {
             case OpCode.PLAYER_POSITION: msg = new NetPlayerPos(stream); break;
+            case OpCode.BALL_MESSAGE: msg = new NetBallMessage(stream); break;
+            case OpCode.UPDATE_SCORE: msg = new NetUpdateScore(stream); break;
+
             default:
                 Debug.Log("Message recieved had no OPCode " + opCode);
                 break;
@@ -136,6 +150,17 @@ public class ServerManager : MonoBehaviour
         foreach(NetworkConnection connection in connections)
         {
             if (connection.IsCreated)
+            {
+                SendToClient(connection, msg);
+            }
+        }
+    }
+
+    public void BroadCastExcept(NetMessage msg, NetworkConnection except)
+    {
+        foreach (NetworkConnection connection in connections)
+        {
+            if (connection.IsCreated && connection != except)
             {
                 SendToClient(connection, msg);
             }

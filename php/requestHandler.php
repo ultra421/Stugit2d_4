@@ -37,7 +37,7 @@
         $result = $stmt->get_result();
         $stmt->close();
     
-        if ($result->num_rows >= 1) {
+        if ($result->num_rows == 1) {
             echo "true";
         } else {
             echo "false";

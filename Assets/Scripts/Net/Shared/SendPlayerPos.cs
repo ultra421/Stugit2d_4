@@ -13,12 +13,12 @@ public class SendPlayerPos : MonoBehaviour
     }
     private void Update()
     {
-        if (Time.time - lastSendTime > 1.0f)
-        {
-            Vector3 clientPos = transform.position;
-            NetPlayerPos pos = new NetPlayerPos(1, clientPos.x, clientPos.y, clientPos.z);
-            client.SendToServer(pos);
-            lastSendTime= Time.time;
-        }
+        //if (Time.time - lastSendTime > 1.0f)
+        //{
+        //    Vector3 clientPos = transform.position;
+        //    NetPlayerPos pos = new NetPlayerPos(1, clientPos.x, clientPos.y, clientPos.z);
+        //    client.SendToServer(pos);
+        //    lastSendTime= Time.time;
+        //}
     }
 }
