@@ -33,10 +33,8 @@ public class ClientManager : MonoBehaviour
 
     private void BuildConnection(string ip, int port)
     {
-        NetworkEndPoint endpoint = NetworkEndPoint.LoopbackIpv4;
-        endpoint.Port = 5522;
+        NetworkEndPoint endpoint = NetworkEndPoint.Parse(ip, (ushort)port);
         connection = driver.Connect(endpoint);
-        Debug.Log("Succesfull connection");
     }
 
     private void FixedUpdate()
@@ -70,6 +68,9 @@ public class ClientManager : MonoBehaviour
                     ServerInfoTransfer menuHandler = FindObjectOfType<ServerInfoTransfer>();
                     Destroy(menuHandler.gameObject);
                     SceneManager.LoadScene("menu");
+                } else
+                {
+                    Debug.Log("Succesfull connection");
                 }
             }
             else if (cmd == NetworkEvent.Type.Data)
